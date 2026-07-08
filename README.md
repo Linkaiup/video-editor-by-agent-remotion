@@ -6,6 +6,10 @@
 
 通过自然语言对话生成专业级视频内容
 
+[![GitHub stars](https://img.shields.io/github/stars/Linkaiup/video-editor-by-agent-remotion?style=social)](https://github.com/Linkaiup/video-editor-by-agent-remotion/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Linkaiup/video-editor-by-agent-remotion?style=social)](https://github.com/Linkaiup/video-editor-by-agent-remotion/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/Linkaiup/video-editor-by-agent-remotion)](https://github.com/Linkaiup/video-editor-by-agent-remotion/issues)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
@@ -717,8 +721,8 @@ if (layer.startFrame >= layer.endFrame) {
 #### 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-org/remotion-video-editor-agent.git
-cd remotion-video-editor-agent
+git clone https://github.com/Linkaiup/video-editor-by-agent-remotion.git
+cd video-editor-by-agent-remotion
 ```
 
 #### 2. 安装依赖
@@ -746,7 +750,7 @@ cd ..
 # OpenAI API 配置
 OPENAI_API_KEY=your-api-key-here
 OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o
+OPENAI_MODEL=gpt-5.5
 
 # 服务器配置
 PORT=3001
@@ -757,7 +761,7 @@ PORT=3001
 ```env
 OPENAI_API_KEY=your-proxy-key
 OPENAI_BASE_URL=https://your-proxy.com/v1
-OPENAI_MODEL=gpt-4o
+OPENAI_MODEL=gpt-5.5
 ```
 
 #### 4. 编译 Agent 代码
@@ -1297,7 +1301,7 @@ remotion-video-editor-agent/
 
 ### AI/LLM
 
-- **OpenAI GPT-4o** - 意图理解和代码生成
+- **OpenAI GPT-5.5** - 意图理解和代码生成
 - 支持第三方兼容 API
 
 ---
@@ -1378,7 +1382,7 @@ npm run format
 **解决方案：**
 1. 检查 API Key 是否正确
 2. 测试中转 API 是否正常
-3. 尝试使用 `gpt-3.5-turbo` 代替 `gpt-4o`
+3. 尝试使用 `gpt-5.5` 代替 `gpt-4o`
 4. 联系中转 API 提供商
 
 ### 3. 视频渲染失败
@@ -1412,7 +1416,7 @@ npm run format
 ### v1.1（计划中）
 
 - ⏳ 视频编辑功能（剪辑、拼接）
-- ⏳ 更多动画效果（3D 转换、粒子效果）
+- ⏳ 更多动画效果
 - ⏳ 音频支持（背景音乐、旁白）
 - ⏳ 字幕生成（自动语音识别）
 
@@ -1463,9 +1467,9 @@ npm run format
 
 ## 📞 联系方式
 
-- 项目主页：https://github.com/your-org/remotion-video-editor-agent
-- 问题反馈：https://github.com/your-org/remotion-video-editor-agent/issues
-- 邮箱：support@example.com
+- 项目主页：https://github.com/Linkaiup/video-editor-by-agent-remotion
+- 问题反馈：https://github.com/Linkaiup/video-editor-by-agent-remotion/issues
+- 邮箱：lincoln0.981213@gmail.com
 
 ---
 
