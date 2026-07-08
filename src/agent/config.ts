@@ -7,6 +7,15 @@
  * 3. 预设的视频规格（社交媒体、标准格式）
  */
 
+// 加载环境变量（从项目根目录）
+import { config } from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+config({ path: resolve(__dirname, '../../.env') });
+
 /**
  * Agent 核心配置
  */

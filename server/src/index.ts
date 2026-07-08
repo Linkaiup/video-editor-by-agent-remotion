@@ -4,7 +4,9 @@
  * 提供 RESTful API 和 WebSocket 服务
  */
 
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
@@ -13,6 +15,13 @@ import chatRouter from './routes/chat.js';
 import uploadRouter from './routes/upload.js';
 import projectsRouter from './routes/projects.js';
 import { setupWebSocket } from './websocket/handler.js';
+
+// 获取当前文件的目录
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// 从项目根目录加载 .env 文件
+config({ path: resolve(__dirname, '../../.env') });
 
 const app = express();
 const httpServer = createServer(app);
