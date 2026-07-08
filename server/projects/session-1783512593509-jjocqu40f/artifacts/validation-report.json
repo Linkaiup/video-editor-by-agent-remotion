@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-07-08T12:15:42.853Z",
+  "status": "passed",
+  "checks": {
+    "lint": {
+      "passed": true,
+      "errors": []
+    },
+    "validate": {
+      "passed": true,
+      "errors": []
+    },
+    "snapshot": {
+      "passed": true,
+      "frames": [
+        {
+          "beat": "beat-1",
+          "frame": 0,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-1-start.png"
+        },
+        {
+          "beat": "beat-1",
+          "frame": 45,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-1-mid.png"
+        },
+        {
+          "beat": "beat-1",
+          "frame": 89,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-1-end.png"
+        },
+        {
+          "beat": "beat-2",
+          "frame": 0,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-2-start.png"
+        },
+        {
+          "beat": "beat-2",
+          "frame": 45,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-2-mid.png"
+        },
+        {
+          "beat": "beat-2",
+          "frame": 89,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-2-end.png"
+        },
+        {
+          "beat": "beat-3",
+          "frame": 0,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-3-start.png"
+        },
+        {
+          "beat": "beat-3",
+          "frame": 45,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-3-mid.png"
+        },
+        {
+          "beat": "beat-3",
+          "frame": 89,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-3-end.png"
+        },
+        {
+          "beat": "beat-4",
+          "frame": 0,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-4-start.png"
+        },
+        {
+          "beat": "beat-4",
+          "frame": 45,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-4-mid.png"
+        },
+        {
+          "beat": "beat-4",
+          "frame": 89,
+          "path": "projects/session-1783512593509-jjocqu40f/artifacts/snapshots/beat-4-end.png"
+        }
+      ]
+    }
+  },
+  "quality": {
+    "smoothness": 95,
+    "stability": 95,
+    "performance": 90,
+    "overall": 94
+  }
+}

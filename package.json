@@ -1,0 +1,38 @@
+{
+  "name": "remotion-harness-agent",
+  "version": "0.1.0",
+  "description": "A natural language video editing agent powered by Remotion and DeepSeek",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion render",
+    "preview": "remotion preview",
+    "upgrade": "remotion upgrade",
+    "agent:server": "tsx src/agent/server.ts",
+    "agent:cli": "tsx src/agent/cli.ts",
+    "agent:examples": "tsx src/agent/examples.ts",
+    "agent:build": "tsc -p tsconfig.agent.json"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/player": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "dotenv": "^17.4.2",
+    "openai": "^4.72.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "zod": "^3.23.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

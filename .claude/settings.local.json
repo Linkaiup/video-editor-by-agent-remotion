@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E '\\\\.\\(md|txt\\)$')",
+      "Bash(npm view *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(rm -f src/compositions/comp-*.tsx)",
+      "Bash(open output/comp-1783410581695-4xsg8na03.mp4)",
+      "Bash(chmod +x test-agent.sh)",
+      "Bash(./test-agent.sh)",
+      "Bash(node test-e2e.js)",
+      "Bash(npx tsx *)",
+      "Bash(chmod +x verify.sh)",
+      "Bash(./verify.sh)",
+      "Bash(cat)",
+      "Bash(chmod +x src/agent/harness/fix-imports.sh)",
+      "Bash(./src/agent/harness/fix-imports.sh)",
+      "Bash(sed -i '' \"s|import { tracer }|import { createTracer }|g\" src/agent/harness/*.ts)",
+      "Bash(sed -i '' \"s|tracer\\\\.|createTracer\\('Harness'\\).|g\" src/agent/harness/*.ts)",
+      "WebFetch(domain:hyperframes.heygen.com)",
+      "Bash(echo ' *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill -9)",
+      "Bash(sleep 3 && tail -20 /tmp/remotion-server.log)",
+      "Read(//private/tmp/**)",
+      "Bash(lsof -ti:3001)"
+    ],
+    "additionalDirectories": [
+      "/Users/bingerlin/visCodeClaudeProject/video-editor-by-agent-remotion/src/compositions"
+    ]
+  }
+}
