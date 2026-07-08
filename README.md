@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**🎬 基于 Remotion 和 AI Agent 的智能视频编辑系统**
+**🎬 基于 Remotion 和 Harness 的智能视频编辑系统**
 
 通过自然语言对话生成专业级视频内容
 
