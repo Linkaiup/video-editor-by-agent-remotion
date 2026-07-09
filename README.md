@@ -15,7 +15,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Remotion](https://img.shields.io/badge/Remotion-4.0+-purple.svg)](https://www.remotion.dev/)
 
-[功能特性](#-功能特性) • [快速开始](#-快速开始) • [架构设计](#-架构设计) • [项目亮点](#-项目亮点) • [使用方法](#-使用方法) • [文档](#-文档)
+[功能特性](#-功能特性) • [架构设计](#-架构设计) • [项目亮点](#-项目亮点) • [使用方法](#-使用方法)
 
 </div>
 
@@ -1021,20 +1021,6 @@ remotion-video-editor-agent/
 
 - **OpenAI GPT-5.5** - 意图理解和代码生成
 - 支持第三方兼容 API
-
----
-
-## 📖 文档
-
-### 配置指南
-
-- [OpenAI API 配置指南](docs/17-openai-api-configuration.md) - 详细的 API 配置说明
-
-### 架构文档
-
-- [Harness 流程详解](docs/harness-flow.md) - 8步流水线完整说明
-- [制品系统设计](docs/artifacts.md) - Named Artifacts 设计原理
-- [智能重试机制](docs/recovery.md) - 降级策略详解
 
 ---
 
