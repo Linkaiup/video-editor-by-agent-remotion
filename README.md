@@ -15,7 +15,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Remotion](https://img.shields.io/badge/Remotion-4.0+-purple.svg)](https://www.remotion.dev/)
 
-[功能特性](#-功能特性) • [架构设计](#-架构设计) • [项目亮点](#-项目亮点) • [快速启动](#-快速启动)
+[功能特性](#-功能特性) • [架构设计](#-架构设计) • [项目亮点](#-项目亮点) • [快速启动](#️-快速启动)
 
 </div>
 
@@ -517,6 +517,7 @@ artifacts/
 - ✅ 超时时间可调
 
 ---
+
 ## 🏗️ 快速启动
 
 ### 环境要求
