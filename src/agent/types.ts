@@ -22,22 +22,6 @@ export interface IntentConfirmation {
   needsConfirmation: boolean;
 }
 
-export interface TaskPlan {
-  id: string;
-  steps: TaskStep[];
-  estimatedDuration: number;
-  dependencies: string[];
-}
-
-export interface TaskStep {
-  id: string;
-  action: string;
-  description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  result?: any;
-  error?: string;
-}
-
 export interface CompositionSpec {
   id: string;
   width: number;
