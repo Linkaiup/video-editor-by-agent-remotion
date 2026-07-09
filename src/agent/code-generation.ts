@@ -23,7 +23,7 @@ const openai = new OpenAI({
 const tracer = createTracer('CodeGeneration');
 
 /**
- * 生成组合代码
+ * 生成组合代码--等P1进阶版本再使用
  *
  * 根据组合规格生成完整的 React/TypeScript 组件代码
  * **重要**: 确保组件导出名与规格 ID 匹配

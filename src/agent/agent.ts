@@ -13,7 +13,6 @@ import OpenAI from 'openai';
 import { AGENT_CONFIG } from './config.js';
 import { recognizeIntent, confirmIntent } from './intent-recognition.js';
 import { createTaskPlan, executeTaskPlan, getStepProgress } from './task-planning.js';
-import { generateCompositionCode } from './code-generation.js';
 import { validateComposition } from './validation.js';
 import { renderVideo, formatFileSize, formatRenderTime } from './renderer.js';
 import { createTracer, getAllMetrics, getAllTraces } from './tracing.js';
