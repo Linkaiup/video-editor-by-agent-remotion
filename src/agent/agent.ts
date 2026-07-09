@@ -134,7 +134,7 @@ export class RemotionAgent {
       tracer.log('info', '步骤 3: 执行 Harness 2.0 流程');
       const response = await this.handleIntentResult(intent);
 
-      // 步骤 6: 添加到对话历史
+      // 步骤 4: 添加到对话历史
       this.context.conversationHistory.push(
         { role: 'user', content: userMessage },
         { role: 'assistant', content: response.message }
