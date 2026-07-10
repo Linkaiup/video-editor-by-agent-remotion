@@ -82,7 +82,24 @@ export class StoryboardStep {
    */
   private generateBeats(strategy: any, assets: any[]): Beat[] {
     const duration = strategy.format.duration;
-    const beatCount = Math.min(Math.ceil(duration / 3), 5); // 每 beat 约 3 秒，最多 5 个
+    const userEffects = strategy.effects || [];
+    const userTransitions = strategy.transitions || [];
+
+    // 🎯 智能计算 beat 数量
+    // 如果用户指定了动画序列，beat 数量应该等于动画数量
+    // 否则按时长自动分割（每 beat 约 3 秒，最多 5 个）
+    const hasUserEffects = userEffects.length > 0;
+    let beatCount: number;
+
+    if (hasUserEffects) {
+      // 用户指定了动画序列，beat 数量 = 动画数量（最多 8 个）
+      beatCount = Math.min(userEffects.length, 8);
+      tracer.log('info', `🎯 用户指定了 ${userEffects.length} 个动画，生成 ${beatCount} 个 beat`);
+    } else {
+      // 默认按时长分割
+      beatCount = Math.min(Math.ceil(duration / 3), 5);
+    }
+
     const beatDuration = duration / beatCount;
 
     const beats: Beat[] = [];
@@ -90,13 +107,6 @@ export class StoryboardStep {
     // 如果素材数量少于 beat 数量，重复使用素材
     const assetCount = assets.length || 1;
 
-    // 从 strategy 提取用户期望的特效
-    const userEffects = strategy.effects || [];
-    const userTransitions = strategy.transitions || [];
-
-    // 🆕 如果用户指定了特效序列，将其按顺序分配给 beats（每个 beat 一个动画）
-    // 否则所有 beat 使用默认动画
-    const hasUserEffects = userEffects.length > 0;
     const defaultTechniques = ['fade_in', 'scale'];
     const defaultTransitions = userTransitions.length > 0 ? userTransitions : ['crossfade'];
 
@@ -133,8 +143,11 @@ export class StoryboardStep {
       // 如果用户指定了动画序列（如 ['rotate_cw', 'fade_in', 'fade_out', 'fade_in', 'slide_right']）
       // 则按顺序分配给每个 beat（每个 beat 一个动画）
       let beatTechniques: string[];
-      if (hasUserEffects) {
-        // 循环使用用户指定的动画序列
+      if (hasUserEffects && i < userEffects.length) {
+        // 使用用户指定的第 i 个动画（确保不越界）
+        beatTechniques = [userEffects[i]];
+      } else if (hasUserEffects) {
+        // 如果用户动画用完了，循环使用
         const effectIndex = i % userEffects.length;
         beatTechniques = [userEffects[effectIndex]];
       } else {

@@ -34,7 +34,8 @@
       "Bash(xargs kill)",
       "Bash(npm start *)",
       "Read(//tmp/**)",
-      "Bash(kill 32355)"
+      "Bash(kill 32355)",
+      "Bash(curl -s http://localhost:3001/health)"
     ],
     "additionalDirectories": [
       "/Users/bingerlin/visCodeClaudeProject/video-editor-by-agent-remotion/src/compositions"

@@ -1,0 +1,338 @@
+{
+  "projectId": "project-1783675853834",
+  "projectPath": "./projects/session-1783675741740-9bq119n9h",
+  "createdAt": "2026-07-10T09:30:53.835Z",
+  "updatedAt": "2026-07-10T09:30:57.417Z",
+  "capture": {
+    "path": "projects/session-1783675741740-9bq119n9h/artifacts/capture",
+    "metadata": [
+      {
+        "id": "asset-1783675853837-i564c66z3",
+        "originalName": "1783675741178-20323911-20260708191204_93_95.jpg",
+        "type": "image",
+        "path": "projects/session-1783675741740-9bq119n9h/artifacts/capture/assets/1783675741178-20323911-20260708191204_93_95.jpg",
+        "size": 1359381,
+        "format": "jpg"
+      }
+    ],
+    "tokens": {
+      "colors": [
+        "#000000",
+        "#FFFFFF",
+        "#333333",
+        "#666666",
+        "#999999"
+      ],
+      "fonts": [
+        "Inter",
+        "Sans-serif"
+      ],
+      "spacing": [
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        32
+      ]
+    },
+    "thumbnails": {},
+    "status": "completed",
+    "createdAt": "2026-07-10T09:30:53.841Z"
+  },
+  "design": {
+    "path": "./projects/session-1783675741740-9bq119n9h/DESIGN.md",
+    "content": {
+      "visualTheme": {
+        "style": "modern",
+        "mood": "professional"
+      },
+      "colorPalette": [
+        {
+          "name": "Primary",
+          "hex": "#000000",
+          "wcagContrast": 4.5,
+          "usage": "Main actions, links"
+        },
+        {
+          "name": "Secondary",
+          "hex": "#FFFFFF",
+          "wcagContrast": 4.5,
+          "usage": "Secondary actions"
+        },
+        {
+          "name": "Background",
+          "hex": "#FFFFFF",
+          "wcagContrast": 21,
+          "usage": "Page background"
+        },
+        {
+          "name": "Surface",
+          "hex": "#F9F9F9",
+          "wcagContrast": 19,
+          "usage": "Card, panel background"
+        },
+        {
+          "name": "Text Primary",
+          "hex": "#000000",
+          "wcagContrast": 21,
+          "usage": "Primary text"
+        },
+        {
+          "name": "Text Secondary",
+          "hex": "#666666",
+          "wcagContrast": 7,
+          "usage": "Secondary text"
+        }
+      ],
+      "typography": {
+        "heading": {
+          "family": "Inter",
+          "size": "32px",
+          "weight": "700"
+        },
+        "body": {
+          "family": "Inter",
+          "size": "16px",
+          "weight": "400"
+        }
+      },
+      "layout": {
+        "margins": "40px",
+        "padding": "20px",
+        "grid": "12-column"
+      },
+      "components": [
+        {
+          "name": "Text Block",
+          "cssSpecs": "padding: 20px; background: #FFFFFF; border-radius: 8px;"
+        },
+        {
+          "name": "Image Container",
+          "cssSpecs": "object-fit: cover; border-radius: 8px;"
+        }
+      ]
+    },
+    "status": "completed",
+    "createdAt": "2026-07-10T09:30:53.844Z"
+  },
+  "strategy": {
+    "path": "./projects/session-1783675741740-9bq119n9h/STRATEGY.md",
+    "content": {
+      "videoType": "explainer",
+      "format": {
+        "duration": 10,
+        "aspectRatio": "16:9",
+        "fps": 30
+      },
+      "coreMessage": "使用已上传的图片素材创建一个 10 秒视频，并为图片添加顺时针旋转、淡入淡出、再次淡入以及向右滑动的动画效果。",
+      "narrativeArc": {
+        "opening": "",
+        "middle": "",
+        "closing": ""
+      },
+      "effects": [
+        "clockwise_rotation",
+        "fade_in",
+        "fade_out",
+        "fade_in",
+        "slide_right"
+      ],
+      "transitions": [
+        "fade_in",
+        "fade_out"
+      ]
+    },
+    "status": "completed",
+    "createdAt": "2026-07-10T09:30:53.845Z"
+  },
+  "storyboard": {
+    "path": "./projects/session-1783675741740-9bq119n9h/STORYBOARD.md",
+    "content": {
+      "beats": [
+        {
+          "id": "beat-1",
+          "name": "Opening",
+          "startTime": 0,
+          "endTime": 2,
+          "mood": "Energetic",
+          "camera": "Medium shot",
+          "assets": [
+            "projects/session-1783675741740-9bq119n9h/artifacts/capture/assets/1783675741178-20323911-20260708191204_93_95.jpg"
+          ],
+          "techniques": [
+            "clockwise_rotation"
+          ],
+          "transitions": [
+            "fade_in",
+            "fade_out"
+          ],
+          "sfx": []
+        },
+        {
+          "id": "beat-2",
+          "name": "Content 1",
+          "startTime": 2,
+          "endTime": 4,
+          "mood": "Professional",
+          "camera": "Medium shot",
+          "assets": [
+            "projects/session-1783675741740-9bq119n9h/artifacts/capture/assets/1783675741178-20323911-20260708191204_93_95.jpg"
+          ],
+          "techniques": [
+            "fade_in"
+          ],
+          "transitions": [
+            "fade_in",
+            "fade_out"
+          ],
+          "sfx": []
+        },
+        {
+          "id": "beat-3",
+          "name": "Content 2",
+          "startTime": 4,
+          "endTime": 6,
+          "mood": "Professional",
+          "camera": "Medium shot",
+          "assets": [
+            "projects/session-1783675741740-9bq119n9h/artifacts/capture/assets/1783675741178-20323911-20260708191204_93_95.jpg"
+          ],
+          "techniques": [
+            "fade_out"
+          ],
+          "transitions": [
+            "fade_in",
+            "fade_out"
+          ],
+          "sfx": []
+        },
+        {
+          "id": "beat-4",
+          "name": "Content 3",
+          "startTime": 6,
+          "endTime": 8,
+          "mood": "Professional",
+          "camera": "Medium shot",
+          "assets": [
+            "projects/session-1783675741740-9bq119n9h/artifacts/capture/assets/1783675741178-20323911-20260708191204_93_95.jpg"
+          ],
+          "techniques": [
+            "fade_in"
+          ],
+          "transitions": [
+            "fade_in",
+            "fade_out"
+          ],
+          "sfx": []
+        },
+        {
+          "id": "beat-5",
+          "name": "Closing",
+          "startTime": 8,
+          "endTime": 10,
+          "mood": "Inspiring",
+          "camera": "Medium shot",
+          "assets": [
+            "projects/session-1783675741740-9bq119n9h/artifacts/capture/assets/1783675741178-20323911-20260708191204_93_95.jpg"
+          ],
+          "techniques": [
+            "slide_right"
+          ],
+          "transitions": [],
+          "sfx": []
+        }
+      ],
+      "totalDuration": 10
+    },
+    "status": "completed",
+    "createdAt": "2026-07-10T09:30:53.847Z"
+  },
+  "timeline": {
+    "path": "./projects/session-1783675741740-9bq119n9h/timeline.json",
+    "content": {
+      "duration": 10,
+      "fps": 30,
+      "beats": [
+        {
+          "id": "beat-1",
+          "start": 0,
+          "end": 2,
+          "frames": [
+            0,
+            60
+          ]
+        },
+        {
+          "id": "beat-2",
+          "start": 2,
+          "end": 4,
+          "frames": [
+            60,
+            120
+          ]
+        },
+        {
+          "id": "beat-3",
+          "start": 4,
+          "end": 6,
+          "frames": [
+            120,
+            180
+          ]
+        },
+        {
+          "id": "beat-4",
+          "start": 6,
+          "end": 8,
+          "frames": [
+            180,
+            240
+          ]
+        },
+        {
+          "id": "beat-5",
+          "start": 8,
+          "end": 10,
+          "frames": [
+            240,
+            300
+          ]
+        }
+      ]
+    },
+    "status": "completed",
+    "createdAt": "2026-07-10T09:30:53.848Z"
+  },
+  "validation": {
+    "path": "projects/session-1783675741740-9bq119n9h/artifacts/validation-report.json",
+    "content": {
+      "timestamp": "2026-07-10T09:30:57.415Z",
+      "status": "passed",
+      "checks": {
+        "lint": {
+          "passed": true,
+          "errors": []
+        },
+        "validate": {
+          "passed": true,
+          "errors": []
+        },
+        "snapshot": {
+          "passed": true,
+          "frames": []
+        }
+      },
+      "quality": {
+        "smoothness": 60,
+        "stability": 95,
+        "performance": 90,
+        "overall": 86.5
+      }
+    },
+    "snapshots": [],
+    "status": "passed",
+    "createdAt": "2026-07-10T09:30:57.415Z"
+  }
+}

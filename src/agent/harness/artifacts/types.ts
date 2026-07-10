@@ -210,6 +210,7 @@ export interface WordTiming {
 export interface BuildArtifact {
   path: string; // src/compositions/
   compositions: CompositionFile[];
+  entryPoint: string; // 入口文件路径（index.tsx）
   status: 'pending' | 'completed' | 'failed';
   createdAt: Date;
 }

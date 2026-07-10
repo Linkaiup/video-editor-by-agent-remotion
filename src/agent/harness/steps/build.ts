@@ -132,12 +132,20 @@ export class BuildStep {
         fallback: fallbackCount,
       });
 
-      // 生成主索引文件
+      // 生成主索引文件（组件导出）
       await this.generateIndexFile(compositions, compositionsPath);
+
+      // 生成主入口文件（包含 registerRoot）
+      const entryPoint = await this.generateMainEntry(
+        compositions,
+        timeline,
+        outputPath
+      );
 
       const artifact: BuildArtifact = {
         path: compositionsPath,
         compositions,
+        entryPoint,
         status: 'completed',
         createdAt: new Date()
       };
@@ -156,7 +164,7 @@ export class BuildStep {
   }
 
   /**
-   * 生成主索引文件
+   * 生成主索引文件（组件导出）
    */
   private async generateIndexFile(compositions: CompositionFile[], outputPath: string): Promise<void> {
     const imports = compositions.map(c =>
@@ -175,6 +183,81 @@ ${exports}
 `;
 
     await writeFile(join(outputPath, 'index.ts'), code, 'utf-8');
+  }
+
+  /**
+   * 生成主入口文件（包含 registerRoot）
+   */
+  private async generateMainEntry(
+    compositions: CompositionFile[],
+    timeline: TimelineArtifact['content'],
+    outputPath: string
+  ): Promise<string> {
+    // 导入所有 beat 组件
+    const imports = compositions
+      .map((_, index) => {
+        const componentName = `Beat${index + 1}`;
+        const beatId = compositions[index].beatId;
+        const relativePath = `./compositions/${beatId}`;
+        return `import { ${componentName} } from '${relativePath}';`;
+      })
+      .join('\n');
+
+    // 生成组合序列
+    const beatSequences = compositions
+      .map((comp, index) => {
+        const componentName = `Beat${index + 1}`;
+        const beatTiming = timeline.beats[index];
+        const startFrame = beatTiming.frames[0];
+        const durationInFrames = beatTiming.frames[1] - beatTiming.frames[0];
+
+        return `      <Sequence from={${startFrame}} durationInFrames={${durationInFrames}}>
+        <${componentName} />
+      </Sequence>`;
+      })
+      .join('\n');
+
+    const totalFrames = timeline.beats[timeline.beats.length - 1].frames[1];
+
+    const code = `import React from 'react';
+import { Composition, Sequence, registerRoot } from 'remotion';
+${imports}
+
+// 主视频组件
+const GeneratedVideo: React.FC = () => {
+  return (
+    <div style={{ flex: 1, backgroundColor: '#fff' }}>
+${beatSequences}
+    </div>
+  );
+};
+
+// Remotion Root
+export const RemotionRoot: React.FC = () => {
+  return (
+    <>
+      <Composition
+        id="GeneratedVideo"
+        component={GeneratedVideo}
+        durationInFrames={${totalFrames}}
+        fps={${timeline.fps}}
+        width={1920}
+        height={1080}
+      />
+    </>
+  );
+};
+
+// 注册根组件
+registerRoot(RemotionRoot);
+`;
+
+    const entryFile = join(outputPath, 'src', 'index.tsx');
+    await writeFile(entryFile, code, 'utf-8');
+
+    tracer.log('info', '✅ 主入口文件已生成', { entryFile });
+
+    return entryFile;
   }
 
   /**

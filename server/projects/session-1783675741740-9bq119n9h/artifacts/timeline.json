@@ -1,0 +1,51 @@
+{
+  "duration": 10,
+  "fps": 30,
+  "beats": [
+    {
+      "id": "beat-1",
+      "start": 0,
+      "end": 2,
+      "frames": [
+        0,
+        60
+      ]
+    },
+    {
+      "id": "beat-2",
+      "start": 2,
+      "end": 4,
+      "frames": [
+        60,
+        120
+      ]
+    },
+    {
+      "id": "beat-3",
+      "start": 4,
+      "end": 6,
+      "frames": [
+        120,
+        180
+      ]
+    },
+    {
+      "id": "beat-4",
+      "start": 6,
+      "end": 8,
+      "frames": [
+        180,
+        240
+      ]
+    },
+    {
+      "id": "beat-5",
+      "start": 8,
+      "end": 10,
+      "frames": [
+        240,
+        300
+      ]
+    }
+  ]
+}

@@ -165,7 +165,8 @@ export class Harness2Executor {
       );
       const validateValidation = this.steps.validate.validate(validationArtifact);
       if (!validateValidation.passed) {
-        tracer.log('warn', 'Validate 未完全通过', { issues: validateValidation.issues });
+        tracer.log('error', 'Validate 未通过，质量不达标', { issues: validateValidation.issues });
+        throw new Error(`Validate 未通过: ${validateValidation.issues.join(', ')}`);
       }
       await this.artifactsManager.saveValidation(validationArtifact);
       artifacts.validation = validationArtifact;
