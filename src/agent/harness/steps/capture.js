@@ -57,9 +57,12 @@ export class CaptureStep {
                 // 2. 复制到标准位置
                 const targetPath = join(assetsDir, basename(assetPath));
                 await copyFile(assetPath, targetPath);
+                // ✅ 保存相对于 server 目录的路径，用于 HTTP 访问
+                // targetPath: projects/session-xxx/artifacts/capture/assets/image.jpg
+                // 这样可以通过 http://localhost:3001/projects/session-xxx/... 访问
                 assetMeta.path = targetPath;
                 metadata.push(assetMeta);
-                tracer.log('info', '素材处理完成', { id: assetMeta.id });
+                tracer.log('info', '素材处理完成', { id: assetMeta.id, relativePath: assetMeta.path });
             }
             // 3. 提取设计 tokens（颜色、字体等）
             const tokens = await this.extractDesignTokens(metadata);

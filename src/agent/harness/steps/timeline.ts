@@ -100,6 +100,24 @@ export class TimelineStep {
    * 实际应该使用 TTS + 转录工具
    */
   private generateNarrationTiming(text: string, startTime: number, endTime: number) {
+    // 🔧 防御性检查：确保 text 是字符串
+    if (typeof text !== 'string') {
+      tracer.log('warn', '⚠️ narration 不是字符串类型', {
+        type: typeof text,
+        value: text
+      });
+      // 转换为字符串或使用空字符串
+      text = text ? String(text) : '';
+    }
+
+    // 如果是空字符串，返回空的配音时间戳
+    if (!text || text.trim().length === 0) {
+      return {
+        text: '',
+        words: []
+      };
+    }
+
     const words = text.split(/\s+/);
     const duration = endTime - startTime;
     const wordDuration = duration / words.length;
@@ -136,8 +154,9 @@ export class TimelineStep {
     }
 
     // 3. 配音时间戳完整（如有）
+    // 🔧 只在有实际文本内容时检查词级时间戳
     for (const beat of content.beats) {
-      if (beat.narration) {
+      if (beat.narration && beat.narration.text && beat.narration.text.trim().length > 0) {
         if (beat.narration.words.length === 0) {
           issues.push(`Beat ${beat.id} 配音没有词级时间戳`);
         }

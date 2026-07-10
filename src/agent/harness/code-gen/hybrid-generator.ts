@@ -10,6 +10,7 @@
 import { createTracer } from '../../tracing.js';
 import { LLMCodeGenerator } from './llm-generator.js';
 import { DSLCompiler } from './dsl-compiler.js';
+import { ANIMATION_TEMPLATES } from './animation-templates.js';
 import type { VideoSpec } from './dsl-types.js';
 import type { Beat } from '../artifacts/types.js';
 
@@ -138,9 +139,10 @@ export class HybridCodeGenerator {
     let score = 0;
 
     // 1. 检查动画技巧复杂度
+    // 🆕 更新：rotate、slide、blur 已被模板支持，不再算复杂动画
     const complexTechniques = [
       'flip', '3d', 'perspective', 'particle', 'confetti',
-      'bounce', 'spring', 'elastic', 'blur', 'color_shift'
+      'bounce', 'spring', 'elastic', 'color_shift', 'grayscale'
     ];
 
     // 确保 techniques 是数组
@@ -156,8 +158,8 @@ export class HybridCodeGenerator {
       }
     }
 
-    // 2. 动画技巧数量
-    if (techniques.length > 2) {
+    // 2. 动画技巧数量（提高阈值：从 2 改为 3）
+    if (techniques.length > 3) {
       score += 2;
     }
 
@@ -179,7 +181,8 @@ export class HybridCodeGenerator {
       score += 1;
     }
 
-    // 决策阈值
+    // 🆕 决策阈值（保持 5 分）
+    // 现在模板支持更多动画，大部分场景会走模板路径
     if (score >= 5) {
       tracer.log('info', `复杂度评分: ${score} >= 5，使用 LLM 策略`);
       return 'llm';
@@ -251,27 +254,178 @@ export class HybridCodeGenerator {
     // 从环境变量读取服务器端口，默认 3001
     const serverPort = process.env.PORT || '3001';
 
-    const code = `import React from 'react';
-import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from 'remotion';
+    // 🆕 映射技巧名称到动画模板（支持多种动画别名）
+    const techniqueMapping: Record<string, string> = {
+      // 淡入淡出
+      'fade': 'fade_in',
+      'fade_in': 'fade_in',
+      'fade_out': 'fade_out',
+      'fadein': 'fade_in',
+      'fadeout': 'fade_out',
+      '淡入': 'fade_in',
+      '淡出': 'fade_out',
+      '淡入淡出': 'fade_in', // 如果只有一个词，先淡入
+
+      // 缩放
+      'zoom': 'zoom_in',
+      'zoom_in': 'zoom_in',
+      'zoom_out': 'zoom_out',
+      'scale': 'zoom_in',
+      'zoomin': 'zoom_in',
+      'zoomout': 'zoom_out',
+      '缩放': 'zoom_in',
+      '放大': 'zoom_in',
+      '缩小': 'zoom_out',
+
+      // 旋转
+      'rotate': 'rotate_cw',
+      'rotate_cw': 'rotate_cw',
+      'rotate_ccw': 'rotate_ccw',
+      'rotate_360': 'rotate_360',
+      'clockwise': 'rotate_cw',
+      'clockwise_rotation': 'rotate_cw',
+      'counterclockwise': 'rotate_ccw',
+      'counterclockwise_rotation': 'rotate_ccw',
+      '旋转': 'rotate_cw',
+      '顺时针': 'rotate_cw',
+      '顺时针旋转': 'rotate_cw',
+      '逆时针': 'rotate_ccw',
+      '逆时针旋转': 'rotate_ccw',
+
+      // 滑动
+      'slide': 'slide_right',
+      'slide_left': 'slide_left',
+      'slide_right': 'slide_right',
+      'slide_up': 'slide_up',
+      'slide_down': 'slide_down',
+      'slideleft': 'slide_left',
+      'slideright': 'slide_right',
+      'slideup': 'slide_up',
+      'slidedown': 'slide_down',
+      '滑动': 'slide_right',
+      '向左': 'slide_left',
+      '向左滑动': 'slide_left',
+      '向右': 'slide_right',
+      '向右滑动': 'slide_right',
+      '向上': 'slide_up',
+      '向上滑动': 'slide_up',
+      '向下': 'slide_down',
+      '向下滑动': 'slide_down',
+
+      // 模糊
+      'blur': 'blur_in',
+      'blur_in': 'blur_in',
+      'blur_out': 'blur_out',
+      'blurin': 'blur_in',
+      'blurout': 'blur_out',
+      '模糊': 'blur_in',
+    };
+
+    // 🆕 收集需要的动画和导入
+    const animations: Array<{ varName: string; code: string; cssProperty: string; valueExpr: string }> = [];
+    const imports = new Set<string>(['useCurrentFrame', 'AbsoluteFill', 'Sequence']);
+
+    // 默认添加 fade_in 和 zoom_in（如果没有指定其他动画）
+    const techniques = beat.techniques && beat.techniques.length > 0
+      ? beat.techniques
+      : ['fade_in', 'zoom_in'];
+
+    // 🎯 智能时序分配：将动画均匀分配到时间轴上
+    // 如果有 N 个动画，将总时长分为 N 段，顺序执行
+    const animationCount = techniques.length;
+    const segmentDuration = Math.floor(durationInFrames / animationCount);
+
+    techniques.forEach((technique: string, idx: number) => {
+      const templateKey = techniqueMapping[technique.toLowerCase()];
+      if (templateKey && ANIMATION_TEMPLATES[templateKey]) {
+        const template = ANIMATION_TEMPLATES[templateKey];
+        const varName = `anim${idx + 1}`;
+
+        // 添加导入
+        template.imports.forEach(imp => imports.add(imp));
+
+        // 🎯 计算时间范围（分段执行，不重叠）
+        const animStartFrame = idx * segmentDuration;
+        const animEndFrame = idx === animationCount - 1
+          ? durationInFrames  // 最后一个动画延续到结尾
+          : (idx + 1) * segmentDuration;
+
+        // 生成动画代码
+        const animConfig = {
+          type: templateKey as any,
+          startFrame: animStartFrame,
+          endFrame: animEndFrame,
+          params: this.getDefaultParams(templateKey),
+        };
+
+        const code = template.generateCode(animConfig, varName);
+
+        // 🆕 解析动画应用到哪个 CSS 属性
+        const { cssProperty, valueExpr } = this.parseAnimationStyle(templateKey, varName);
+
+        animations.push({ varName, code, cssProperty, valueExpr });
+      }
+    });
+
+    // 如果没有匹配的动画，使用默认的 fade + scale
+    if (animations.length === 0) {
+      imports.add('interpolate');
+      animations.push(
+        {
+          varName: 'opacity',
+          code: `  const opacity = interpolate(frame, [0, 30], [0, 1], { extrapolateRight: 'clamp' });`,
+          cssProperty: 'opacity',
+          valueExpr: 'opacity',
+        },
+        {
+          varName: 'scale',
+          code: `  const scale = interpolate(frame, [0, ${durationInFrames}], [0.95, 1], { extrapolateRight: 'clamp' });`,
+          cssProperty: 'transform',
+          valueExpr: '`scale(${scale})`',
+        }
+      );
+    }
+
+    // 生成导入语句
+    const importStatement = `import React from 'react';\nimport { ${Array.from(imports).join(', ')} } from 'remotion';`;
+
+    // 生成动画变量声明
+    const animationCode = animations.map(a => a.code).join('\n\n');
+
+    // 🆕 智能合并样式：相同属性的动画合并
+    const styleMap = new Map<string, string[]>();
+    animations.forEach(a => {
+      if (!styleMap.has(a.cssProperty)) {
+        styleMap.set(a.cssProperty, []);
+      }
+      styleMap.get(a.cssProperty)!.push(a.valueExpr);
+    });
+
+    // 生成样式对象（处理多个 transform 的合并）
+    const styleEntries = Array.from(styleMap.entries()).map(([prop, values]) => {
+      if (prop === 'transform') {
+        // 多个 transform 合并成一个字符串
+        const transformParts = values.map(v => v.replace(/`/g, '')).join(' ');
+        return `transform: \`${transformParts}\``;
+      } else {
+        // 其他属性取最后一个值
+        return `${prop}: ${values[values.length - 1]}`;
+      }
+    }).join(',\n        ');
+
+    const code = `${importStatement}
 
 /**
  * Beat: ${beat.name}
  * Duration: ${beat.endTime - beat.startTime}s
  * Mood: ${beat.mood}
- * Generated: Template Strategy
+ * Techniques: ${techniques.join(', ')}
+ * Generated: Template Strategy (Enhanced with Sequential Timing)
  */
 export const ${this.toPascalCase(beat.id)}: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Fade in animation (first 30 frames)
-  const opacity = interpolate(frame, [0, 30], [0, 1], {
-    extrapolateRight: 'clamp',
-  });
-
-  // Scale animation
-  const scale = interpolate(frame, [0, ${durationInFrames}], [0.95, 1], {
-    extrapolateRight: 'clamp',
-  });
+${animationCode}
 
   return (
     <AbsoluteFill
@@ -280,38 +434,45 @@ export const ${this.toPascalCase(beat.id)}: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity,
       }}
     >
-      <div
-        style={{
-          transform: \`scale(\${scale})\`,
-          fontSize: '48px',
-          fontWeight: 'bold',
-          color: '${primaryColor}',
-          textAlign: 'center',
-          padding: '40px',
-        }}
-      >
-        ${beat.narration || beat.name}
-      </div>
-
-      {/* Assets */}
+      {/* Assets with animations */}
       ${beat.assets.map((asset: string, idx: number) => `
       <img
         src="http://localhost:${serverPort}/${asset}"
         style={{
           position: 'absolute',
-          width: '50%',
+          width: '80%',
           height: 'auto',
-          opacity: ${0.8 - idx * 0.2},
+          objectFit: 'contain',
+          ${styleEntries},
         }}
         alt="Asset ${idx + 1}"
       />`).join('\n')}
+
+      {/* Narration text (if any) */}
+      ${beat.narration ? `
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '10%',
+          fontSize: '36px',
+          fontWeight: 'bold',
+          color: '${primaryColor}',
+          textAlign: 'center',
+          padding: '20px 40px',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          borderRadius: '12px',
+        }}
+      >
+        ${beat.narration}
+      </div>` : ''}
     </AbsoluteFill>
   );
 };
 `;
+
+    tracer.log('info', `✅ 模板生成完成，使用动画：${techniques.join(', ')}`);
 
     return {
       code,
@@ -319,6 +480,52 @@ export const ${this.toPascalCase(beat.id)}: React.FC = () => {
       complexity: 'simple',
       success: true,
     };
+  }
+
+  /**
+   * 🆕 解析动画应用到哪个 CSS 属性
+   */
+  private parseAnimationStyle(templateKey: string, varName: string): { cssProperty: string; valueExpr: string } {
+    // 根据动画类型，返回对应的 CSS 属性和值表达式
+    const styleMap: Record<string, { cssProperty: string; valueExpr: string }> = {
+      'fade_in': { cssProperty: 'opacity', valueExpr: varName },
+      'fade_out': { cssProperty: 'opacity', valueExpr: varName },
+      'zoom_in': { cssProperty: 'transform', valueExpr: `\`scale(\${${varName}})\`` },
+      'zoom_out': { cssProperty: 'transform', valueExpr: `\`scale(\${${varName}})\`` },
+      'rotate_cw': { cssProperty: 'transform', valueExpr: `\`rotate(\${${varName}}deg)\`` },
+      'rotate_ccw': { cssProperty: 'transform', valueExpr: `\`rotate(\${${varName}}deg)\`` },
+      'rotate_360': { cssProperty: 'transform', valueExpr: `\`rotate(\${${varName}}deg)\`` },
+      'slide_left': { cssProperty: 'transform', valueExpr: `\`translateX(\${${varName}}%)\`` },
+      'slide_right': { cssProperty: 'transform', valueExpr: `\`translateX(\${${varName}}%)\`` },
+      'slide_up': { cssProperty: 'transform', valueExpr: `\`translateY(\${${varName}}%)\`` },
+      'slide_down': { cssProperty: 'transform', valueExpr: `\`translateY(\${${varName}}%)\`` },
+      'blur_in': { cssProperty: 'filter', valueExpr: `\`blur(\${${varName}}px)\`` },
+      'blur_out': { cssProperty: 'filter', valueExpr: `\`blur(\${${varName}}px)\`` },
+    };
+
+    return styleMap[templateKey] || { cssProperty: 'opacity', valueExpr: varName };
+  }
+
+  /**
+   * 🆕 获取动画的默认参数
+   */
+  private getDefaultParams(templateKey: string): any {
+    const defaults: Record<string, any> = {
+      'fade_in': { from: 0, to: 1 },
+      'fade_out': { from: 1, to: 0 },
+      'zoom_in': { scale: [0.95, 1] },
+      'zoom_out': { scale: [1, 1.1] },
+      'rotate_cw': { degrees: 90 },
+      'rotate_ccw': { degrees: -90 },
+      'rotate_360': { degrees: 360 },
+      'slide_left': { distance: -100 },
+      'slide_right': { distance: 100 },
+      'slide_up': { distance: -100 },
+      'slide_down': { distance: 100 },
+      'blur_in': { blurAmount: 10 },
+      'blur_out': { blurAmount: 10 },
+    };
+    return defaults[templateKey] || {};
   }
 
   /**

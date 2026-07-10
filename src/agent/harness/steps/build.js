@@ -1,8 +1,10 @@
 /**
  * Harness 2.0 - Step 6: Build
  *
- * 代码生成与构建
- * - 将 storyboard 转化为 Remotion 组件
+ * 代码生成与构建（混合模式）
+ * - 简单场景：使用模板生成（快速、确定性）
+ * - 复杂场景：使用 LLM 生成 VideoSpec DSL，编译为代码
+ * - 失败降级：LLM 失败时自动降级到模板
  * - Sub-agent 隔离机制（多 beat 项目）
  * - 每个 beat 独立生成
  * - 语法和类型检查
@@ -10,10 +12,14 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { createTracer } from '../../tracing.js';
+import { HybridCodeGenerator } from '../code-gen/hybrid-generator.js';
 const tracer = createTracer('Harness2.Build');
 export class BuildStep {
+    constructor() {
+        this.hybridGenerator = new HybridCodeGenerator();
+    }
     /**
-     * 执行 Build 步骤
+     * 执行 Build 步骤（混合模式）
      *
      * @param storyboardArtifact - Storyboard 制品
      * @param designArtifact - Design 制品
@@ -24,12 +30,16 @@ export class BuildStep {
     async execute(storyboardArtifact, designArtifact, timelineArtifact, outputPath) {
         const trace = tracer.startTrace('build_execute', {});
         try {
-            tracer.log('info', '🔨 Step 6: Build - 代码生成');
+            tracer.log('info', '🔨 Step 6: Build - 代码生成（混合模式）');
             const storyboard = storyboardArtifact.content;
             const design = designArtifact.content;
             const timeline = timelineArtifact.content;
             const compositionsPath = join(outputPath, 'src', 'compositions');
             const compositions = [];
+            // 统计信息
+            let llmCount = 0;
+            let templateCount = 0;
+            let fallbackCount = 0;
             // Sub-agent 策略：多 beat 项目为每个 beat 派生独立生成
             if (storyboard.beats.length > 3) {
                 tracer.log('info', '使用 Sub-agent 隔离策略', { beatCount: storyboard.beats.length });
@@ -39,23 +49,51 @@ export class BuildStep {
                 const beat = storyboard.beats[i];
                 const beatTiming = timeline.beats[i];
                 tracer.log('info', `生成 Beat ${beat.id}`, { name: beat.name });
-                // 生成组件代码
-                const code = this.generateBeatComponent(beat, beatTiming, design);
+                // 使用混合模式生成代码
+                const componentName = this.toPascalCase(beat.id);
+                const result = await this.hybridGenerator.generate(beat, beatTiming, design, timeline.fps, componentName);
+                // 统计策略使用情况
+                if (result.strategy === 'llm') {
+                    llmCount++;
+                    if (result.fallback) {
+                        fallbackCount++;
+                    }
+                }
+                else {
+                    templateCount++;
+                }
                 // 保存文件
                 const fileName = `${beat.id}.tsx`;
                 const filePath = join(compositionsPath, fileName);
-                await writeFile(filePath, code, 'utf-8');
+                await writeFile(filePath, result.code, 'utf-8');
                 // 简单的语法检查
-                const syntaxValid = this.checkSyntax(code);
+                const syntaxValid = this.checkSyntax(result.code);
                 const typeValid = true; // 简化版本，实际应该运行 tsc
                 compositions.push({
                     beatId: beat.id,
                     path: filePath,
                     syntaxValid,
+                    typeValid,
+                    metadata: {
+                        strategy: result.strategy,
+                        complexity: result.complexity,
+                        fallback: result.fallback || false,
+                    }
+                });
+                tracer.log('info', `✅ Beat ${beat.id} 生成完成`, {
+                    strategy: result.strategy,
+                    complexity: result.complexity,
+                    fallback: result.fallback,
+                    syntaxValid,
                     typeValid
                 });
-                tracer.log('info', `✅ Beat ${beat.id} 生成完成`, { syntaxValid, typeValid });
             }
+            tracer.log('info', '📊 代码生成统计', {
+                total: storyboard.beats.length,
+                llm: llmCount,
+                template: templateCount,
+                fallback: fallbackCount,
+            });
             // 生成主索引文件
             await this.generateIndexFile(compositions, compositionsPath);
             const artifact = {
@@ -74,76 +112,6 @@ export class BuildStep {
             trace.end({ error: errorMessage });
             throw error;
         }
-    }
-    /**
-     * 生成 beat 组件代码
-     */
-    generateBeatComponent(beat, timing, design) {
-        const startFrame = timing.frames[0];
-        const durationInFrames = timing.frames[1] - timing.frames[0];
-        // 提取颜色
-        const primaryColor = design.colorPalette.find((c) => c.name === 'Primary')?.hex || '#000000';
-        const bgColor = design.colorPalette.find((c) => c.name === 'Background')?.hex || '#FFFFFF';
-        return `import React from 'react';
-import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from 'remotion';
-
-/**
- * Beat: ${beat.name}
- * Duration: ${beat.endTime - beat.startTime}s
- * Mood: ${beat.mood}
- */
-export const ${this.toPascalCase(beat.id)}: React.FC = () => {
-  const frame = useCurrentFrame();
-
-  // Fade in animation (first 30 frames)
-  const opacity = interpolate(frame, [0, 30], [0, 1], {
-    extrapolateRight: 'clamp',
-  });
-
-  // Scale animation
-  const scale = interpolate(frame, [0, ${durationInFrames}], [0.95, 1], {
-    extrapolateRight: 'clamp',
-  });
-
-  return (
-    <AbsoluteFill
-      style={{
-        backgroundColor: '${bgColor}',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity,
-      }}
-    >
-      <div
-        style={{
-          transform: \`scale(\${scale})\`,
-          fontSize: '48px',
-          fontWeight: 'bold',
-          color: '${primaryColor}',
-          textAlign: 'center',
-          padding: '40px',
-        }}
-      >
-        ${beat.narration || beat.name}
-      </div>
-
-      {/* Assets */}
-      ${beat.assets.map((asset, idx) => `
-      <img
-        src="${asset}"
-        style={{
-          position: 'absolute',
-          width: '50%',
-          height: 'auto',
-          opacity: ${0.8 - idx * 0.2},
-        }}
-        alt="Asset ${idx + 1}"
-      />`).join('\n')}
-    </AbsoluteFill>
-  );
-};
-`;
     }
     /**
      * 生成主索引文件

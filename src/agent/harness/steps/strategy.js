@@ -35,7 +35,11 @@ export class StrategyStep {
                     middle: this.generateMiddle(intent),
                     closing: this.generateClosing(intent)
                 },
-                targetAudience: intent.entities?.audience
+                targetAudience: intent.entities?.audience,
+                // 提取用户期望的特效和转场
+                // 确保转换为字符串数组
+                effects: this.extractEffects(intent.entities?.effects || []),
+                transitions: this.extractEffects(intent.entities?.transitions || [])
             };
             const artifact = {
                 path: outputPath ? `${outputPath}/STRATEGY.md` : 'artifacts/STRATEGY.md',
@@ -89,6 +93,103 @@ export class StrategyStep {
      */
     generateClosing(intent) {
         return '总结要点并引导下一步行动';
+    }
+    /**
+     * 提取 effects，确保返回字符串数组
+     * 🆕 并展开复合动画（如"淡入淡出" → ["fade_in", "fade_out"]）
+     */
+    extractEffects(effects) {
+        if (!effects) {
+            return [];
+        }
+        // 如果已经是数组
+        if (Array.isArray(effects)) {
+            // 过滤并转换为字符串
+            const rawEffects = effects
+                .filter(e => e != null) // 过滤 null 和 undefined
+                .map(e => {
+                // 如果是对象，尝试提取 name 或 type 字段
+                if (typeof e === 'object') {
+                    return e.name || e.type || e.id || String(e);
+                }
+                // 如果是字符串，直接返回
+                if (typeof e === 'string') {
+                    return e;
+                }
+                // 其他类型转换为字符串
+                return String(e);
+            })
+                .filter(e => e && e.length > 0); // 过滤空字符串
+            // 🆕 展开复合动画
+            return this.expandCompositeAnimations(rawEffects);
+        }
+        // 如果是单个值，转换为数组
+        if (typeof effects === 'string') {
+            return this.expandCompositeAnimations([effects]);
+        }
+        // 如果是对象，尝试提取值
+        if (typeof effects === 'object') {
+            const name = effects.name || effects.type || effects.id;
+            if (name && typeof name === 'string') {
+                return [name];
+            }
+        }
+        return [];
+    }
+    /**
+     * 🆕 展开复合动画
+     * 例如："淡入淡出" → ["fade_in", "fade_out"]
+     *       "缩放旋转" → ["zoom_in", "rotate_cw"]
+     */
+    expandCompositeAnimations(effects) {
+        const expanded = [];
+        // 复合动画映射表
+        const compositeMap = {
+            // 淡入淡出
+            '淡入淡出': ['fade_in', 'fade_out'],
+            'fade': ['fade_in', 'fade_out'],
+            'fade_in_out': ['fade_in', 'fade_out'],
+            'fadeinout': ['fade_in', 'fade_out'],
+            // 缩放相关
+            '缩放': ['zoom_in'],
+            'zoom': ['zoom_in'],
+            // 旋转相关
+            '旋转': ['rotate_cw'],
+            'rotate': ['rotate_cw'],
+            '顺时针旋转': ['rotate_cw'],
+            '顺时针': ['rotate_cw'],
+            'clockwise': ['rotate_cw'],
+            '逆时针旋转': ['rotate_ccw'],
+            '逆时针': ['rotate_ccw'],
+            'counterclockwise': ['rotate_ccw'],
+            // 滑动相关
+            '滑动': ['slide_right'],
+            'slide': ['slide_right'],
+            '向右滑动': ['slide_right'],
+            '向右': ['slide_right'],
+            '向左滑动': ['slide_left'],
+            '向左': ['slide_left'],
+            '向上滑动': ['slide_up'],
+            '向上': ['slide_up'],
+            '向下滑动': ['slide_down'],
+            '向下': ['slide_down'],
+        };
+        for (const effect of effects) {
+            const normalized = effect.trim().toLowerCase();
+            // 检查是否是复合动画
+            if (compositeMap[normalized]) {
+                expanded.push(...compositeMap[normalized]);
+            }
+            else if (compositeMap[effect.trim()]) {
+                // 保留原始大小写的查找
+                expanded.push(...compositeMap[effect.trim()]);
+            }
+            else {
+                // 不是复合动画，直接添加
+                expanded.push(effect);
+            }
+        }
+        return expanded;
     }
     /**
      * 检查通过标准

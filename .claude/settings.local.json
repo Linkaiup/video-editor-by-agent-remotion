@@ -25,7 +25,16 @@
       "Bash(xargs kill -9)",
       "Bash(sleep 3 && tail -20 /tmp/remotion-server.log)",
       "Read(//private/tmp/**)",
-      "Bash(lsof -ti:3001)"
+      "Bash(lsof -ti:3001)",
+      "Bash(awk '{print $NF}')",
+      "Bash(xargs cat)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s -X POST http://localhost:3001/api/agent/message -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(xargs kill)",
+      "Bash(npm start *)",
+      "Read(//tmp/**)",
+      "Bash(kill 32355)"
     ],
     "additionalDirectories": [
       "/Users/bingerlin/visCodeClaudeProject/video-editor-by-agent-remotion/src/compositions"

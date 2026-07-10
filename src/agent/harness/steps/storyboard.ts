@@ -94,8 +94,10 @@ export class StoryboardStep {
     const userEffects = strategy.effects || [];
     const userTransitions = strategy.transitions || [];
 
-    // 如果用户指定了特效，使用用户的；否则使用默认的
-    const defaultTechniques = userEffects.length > 0 ? userEffects : ['fade_in', 'scale'];
+    // 🆕 如果用户指定了特效序列，将其按顺序分配给 beats（每个 beat 一个动画）
+    // 否则所有 beat 使用默认动画
+    const hasUserEffects = userEffects.length > 0;
+    const defaultTechniques = ['fade_in', 'scale'];
     const defaultTransitions = userTransitions.length > 0 ? userTransitions : ['crossfade'];
 
     for (let i = 0; i < beatCount; i++) {
@@ -104,28 +106,41 @@ export class StoryboardStep {
 
       let name: string;
       let mood: string;
-      let narration: string;
+      let narration: string | undefined;
 
       if (i === 0) {
         // 开场
         name = 'Opening';
         mood = 'Energetic';
-        narration = strategy.narrativeArc.opening;
+        narration = this.ensureString(strategy.narrativeArc.opening);
       } else if (i === beatCount - 1) {
         // 结尾
         name = 'Closing';
         mood = 'Inspiring';
-        narration = strategy.narrativeArc.closing;
+        narration = this.ensureString(strategy.narrativeArc.closing);
       } else {
         // 中间部分
         name = `Content ${i}`;
         mood = 'Professional';
-        narration = strategy.narrativeArc.middle;
+        narration = this.ensureString(strategy.narrativeArc.middle);
       }
 
       // 循环使用可用素材，确保每个 beat 都有素材
       const assetIndex = i % assetCount;
       const beatAssets = assets.length > 0 ? [assets[assetIndex].path] : [];
+
+      // 🎯 智能分配动画：
+      // 如果用户指定了动画序列（如 ['rotate_cw', 'fade_in', 'fade_out', 'fade_in', 'slide_right']）
+      // 则按顺序分配给每个 beat（每个 beat 一个动画）
+      let beatTechniques: string[];
+      if (hasUserEffects) {
+        // 循环使用用户指定的动画序列
+        const effectIndex = i % userEffects.length;
+        beatTechniques = [userEffects[effectIndex]];
+      } else {
+        // 使用默认动画
+        beatTechniques = defaultTechniques;
+      }
 
       const beat: Beat = {
         id: `beat-${i + 1}`,
@@ -135,8 +150,8 @@ export class StoryboardStep {
         mood,
         camera: 'Medium shot',
         assets: beatAssets,
-        techniques: defaultTechniques,  // 使用用户指定的特效
-        transitions: i < beatCount - 1 ? defaultTransitions : [],  // 使用用户指定的转场
+        techniques: beatTechniques,
+        transitions: i < beatCount - 1 ? defaultTransitions : [],
         sfx: [],
         narration
       };
@@ -167,6 +182,36 @@ export class StoryboardStep {
       passed: issues.length === 0,
       issues
     };
+  }
+
+  /**
+   * 🔧 确保返回字符串类型
+   * 防御性检查：将任何类型转换为字符串或 undefined
+   */
+  private ensureString(value: any): string | undefined {
+    // 如果是 null 或 undefined，返回 undefined
+    if (value == null) {
+      return undefined;
+    }
+
+    // 如果是数组，返回 undefined（不应该有数组类型的 narration）
+    if (Array.isArray(value)) {
+      tracer.log('warn', '⚠️ narrativeArc 字段是数组，已忽略', { value });
+      return undefined;
+    }
+
+    // 如果是字符串
+    if (typeof value === 'string') {
+      // 空字符串返回 undefined（不生成配音）
+      return value.trim().length > 0 ? value : undefined;
+    }
+
+    // 其他类型（对象、数字等）转换为字符串
+    tracer.log('warn', '⚠️ narrativeArc 字段类型异常，已转换', {
+      type: typeof value,
+      value
+    });
+    return String(value);
   }
 
   /**

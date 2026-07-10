@@ -93,27 +93,68 @@ export class StrategyStep {
 
   /**
    * 生成开场
+   * 🆕 只在用户明确要求添加文字时生成
+   * 🔧 确保返回字符串类型
    */
   private generateOpening(intent: UserIntent): string {
-    return '用引人注目的视觉或问题吸引观众注意力';
+    // 检查用户是否要求添加文字/旁白/字幕
+    if (this.shouldAddNarration(intent)) {
+      const text = this.ensureString(intent.entities?.text);
+      return text || '用引人注目的视觉或问题吸引观众注意力';
+    }
+    return '';
   }
 
   /**
    * 生成主体
+   * 🆕 只在用户明确要求添加文字时生成
+   * 🔧 确保返回字符串类型
    */
   private generateMiddle(intent: UserIntent): string {
-    return '展示核心内容和关键信息点';
+    if (this.shouldAddNarration(intent)) {
+      const text = this.ensureString(intent.entities?.text);
+      return text || '展示核心内容和关键信息点';
+    }
+    return '';
   }
 
   /**
    * 生成结尾
+   * 🆕 只在用户明确要求添加文字时生成
+   * 🔧 确保返回字符串类型
    */
   private generateClosing(intent: UserIntent): string {
-    return '总结要点并引导下一步行动';
+    if (this.shouldAddNarration(intent)) {
+      const text = this.ensureString(intent.entities?.text);
+      return text || '总结要点并引导下一步行动';
+    }
+    return '';
+  }
+
+  /**
+   * 🆕 检查用户是否要求添加文字/旁白
+   */
+  private shouldAddNarration(intent: UserIntent): boolean {
+    const desc = intent.description.toLowerCase();
+
+    // 检查关键词
+    const textKeywords = [
+      '文字', '字幕', '旁白', '标题', '文案',
+      'text', 'subtitle', 'caption', 'title', 'narration'
+    ];
+
+    // 检查描述中是否包含文字相关关键词
+    const hasTextKeyword = textKeywords.some(kw => desc.includes(kw));
+
+    // 或者 entities 中明确指定了 text
+    const hasTextEntity = intent.entities?.text != null;
+
+    return hasTextKeyword || hasTextEntity;
   }
 
   /**
    * 提取 effects，确保返回字符串数组
+   * 🆕 并展开复合动画（如"淡入淡出" → ["fade_in", "fade_out"]）
    */
   private extractEffects(effects: any): string[] {
     if (!effects) {
@@ -123,7 +164,7 @@ export class StrategyStep {
     // 如果已经是数组
     if (Array.isArray(effects)) {
       // 过滤并转换为字符串
-      return effects
+      const rawEffects = effects
         .filter(e => e != null) // 过滤 null 和 undefined
         .map(e => {
           // 如果是对象，尝试提取 name 或 type 字段
@@ -138,11 +179,14 @@ export class StrategyStep {
           return String(e);
         })
         .filter(e => e && e.length > 0); // 过滤空字符串
+
+      // 🆕 展开复合动画
+      return this.expandCompositeAnimations(rawEffects);
     }
 
     // 如果是单个值，转换为数组
     if (typeof effects === 'string') {
-      return [effects];
+      return this.expandCompositeAnimations([effects]);
     }
 
     // 如果是对象，尝试提取值
@@ -154,6 +198,96 @@ export class StrategyStep {
     }
 
     return [];
+  }
+
+  /**
+   * 🆕 展开复合动画
+   * 例如："淡入淡出" → ["fade_in", "fade_out"]
+   *       "缩放旋转" → ["zoom_in", "rotate_cw"]
+   */
+  private expandCompositeAnimations(effects: string[]): string[] {
+    const expanded: string[] = [];
+
+    // 复合动画映射表
+    const compositeMap: Record<string, string[]> = {
+      // 淡入淡出
+      '淡入淡出': ['fade_in', 'fade_out'],
+      'fade': ['fade_in', 'fade_out'],
+      'fade_in_out': ['fade_in', 'fade_out'],
+      'fadeinout': ['fade_in', 'fade_out'],
+
+      // 缩放相关
+      '缩放': ['zoom_in'],
+      'zoom': ['zoom_in'],
+
+      // 旋转相关
+      '旋转': ['rotate_cw'],
+      'rotate': ['rotate_cw'],
+      '顺时针旋转': ['rotate_cw'],
+      '顺时针': ['rotate_cw'],
+      'clockwise': ['rotate_cw'],
+      '逆时针旋转': ['rotate_ccw'],
+      '逆时针': ['rotate_ccw'],
+      'counterclockwise': ['rotate_ccw'],
+
+      // 滑动相关
+      '滑动': ['slide_right'],
+      'slide': ['slide_right'],
+      '向右滑动': ['slide_right'],
+      '向右': ['slide_right'],
+      '向左滑动': ['slide_left'],
+      '向左': ['slide_left'],
+      '向上滑动': ['slide_up'],
+      '向上': ['slide_up'],
+      '向下滑动': ['slide_down'],
+      '向下': ['slide_down'],
+    };
+
+    for (const effect of effects) {
+      const normalized = effect.trim().toLowerCase();
+
+      // 检查是否是复合动画
+      if (compositeMap[normalized]) {
+        expanded.push(...compositeMap[normalized]);
+      } else if (compositeMap[effect.trim()]) {
+        // 保留原始大小写的查找
+        expanded.push(...compositeMap[effect.trim()]);
+      } else {
+        // 不是复合动画，直接添加
+        expanded.push(effect);
+      }
+    }
+
+    return expanded;
+  }
+
+  /**
+   * 🔧 确保返回字符串类型
+   * 防御性检查：将任何类型转换为字符串
+   */
+  private ensureString(value: any): string {
+    // 如果是 null 或 undefined，返回空字符串
+    if (value == null) {
+      return '';
+    }
+
+    // 如果是数组，取第一个元素或返回空字符串
+    if (Array.isArray(value)) {
+      tracer.log('warn', '⚠️ text 字段是数组，取第一个元素', { value });
+      return value.length > 0 ? String(value[0]) : '';
+    }
+
+    // 如果是字符串，直接返回
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    // 其他类型（对象、数字等）转换为字符串
+    tracer.log('warn', '⚠️ text 字段类型异常，已转换', {
+      type: typeof value,
+      value
+    });
+    return String(value);
   }
 
   /**
@@ -185,7 +319,11 @@ export class StrategyStep {
     }
 
     // 4. 叙事弧线完整
-    if (!content.narrativeArc.opening || !content.narrativeArc.middle || !content.narrativeArc.closing) {
+    // 🔧 允许空字符串（用户不需要文字的情况）
+    // 只检查字段是否存在，不检查是否为空
+    if (content.narrativeArc.opening === undefined ||
+        content.narrativeArc.middle === undefined ||
+        content.narrativeArc.closing === undefined) {
       issues.push('叙事弧线不完整');
     }
 

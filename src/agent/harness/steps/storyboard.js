@@ -64,6 +64,14 @@ export class StoryboardStep {
         const beats = [];
         // 如果素材数量少于 beat 数量，重复使用素材
         const assetCount = assets.length || 1;
+        // 从 strategy 提取用户期望的特效
+        const userEffects = strategy.effects || [];
+        const userTransitions = strategy.transitions || [];
+        // 🆕 如果用户指定了特效序列，将其按顺序分配给 beats（每个 beat 一个动画）
+        // 否则所有 beat 使用默认动画
+        const hasUserEffects = userEffects.length > 0;
+        const defaultTechniques = ['fade_in', 'scale'];
+        const defaultTransitions = userTransitions.length > 0 ? userTransitions : ['crossfade'];
         for (let i = 0; i < beatCount; i++) {
             const startTime = i * beatDuration;
             const endTime = (i + 1) * beatDuration;
@@ -91,6 +99,19 @@ export class StoryboardStep {
             // 循环使用可用素材，确保每个 beat 都有素材
             const assetIndex = i % assetCount;
             const beatAssets = assets.length > 0 ? [assets[assetIndex].path] : [];
+            // 🎯 智能分配动画：
+            // 如果用户指定了动画序列（如 ['rotate_cw', 'fade_in', 'fade_out', 'fade_in', 'slide_right']）
+            // 则按顺序分配给每个 beat（每个 beat 一个动画）
+            let beatTechniques;
+            if (hasUserEffects) {
+                // 循环使用用户指定的动画序列
+                const effectIndex = i % userEffects.length;
+                beatTechniques = [userEffects[effectIndex]];
+            }
+            else {
+                // 使用默认动画
+                beatTechniques = defaultTechniques;
+            }
             const beat = {
                 id: `beat-${i + 1}`,
                 name,
@@ -99,8 +120,8 @@ export class StoryboardStep {
                 mood,
                 camera: 'Medium shot',
                 assets: beatAssets,
-                techniques: ['fade_in', 'scale'],
-                transitions: i < beatCount - 1 ? ['crossfade'] : [],
+                techniques: beatTechniques,
+                transitions: i < beatCount - 1 ? defaultTransitions : [],
                 sfx: [],
                 narration
             };

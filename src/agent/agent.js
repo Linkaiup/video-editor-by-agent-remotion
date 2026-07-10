@@ -9,7 +9,6 @@
  * 5. 提供指标和追踪信息
  */
 import { recognizeIntent } from './intent-recognition.js';
-import { createTaskPlan, executeTaskPlan, getStepProgress } from './task-planning.js';
 import { createTracer, getAllMetrics, getAllTraces } from './tracing.js';
 import { ResilientHarness2Executor } from './harness/resilient-executor.js';
 import { analyzeClarification, formatClarificationMessage } from './clarification.js';
@@ -83,19 +82,10 @@ export class RemotionAgent {
                 };
             }
             tracer.log('info', '意图确认完成，信息完整度：' + clarificationResult.completeness + '%');
-            // 步骤 3: 创建任务计划
-            tracer.log('info', '步骤 3: 创建任务计划');
-            const plan = await createTaskPlan(intent);
-            tracer.log('info', '任务计划已创建', { steps: plan.steps.length });
-            // 步骤 4: 执行任务计划
-            tracer.log('info', '步骤 4: 执行任务计划');
-            const executedPlan = await executeTaskPlan(plan, (step) => {
-                const progress = getStepProgress(plan);
-                tracer.log('info', `进度: ${progress.percentage}%`, { step: step.action, status: step.status });
-            });
-            // 步骤 5: 根据意图类型处理结果
-            const response = await this.handleIntentResult(intent, executedPlan);
-            // 步骤 6: 添加到对话历史
+            // 步骤 3: 根据意图类型处理结果（直接执行 Harness 2.0）
+            tracer.log('info', '步骤 3: 执行 Harness 2.0 流程');
+            const response = await this.handleIntentResult(intent);
+            // 步骤 4: 添加到对话历史
             this.context.conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: response.message });
             trace.end({ success: true });
             return response;
@@ -117,19 +107,18 @@ export class RemotionAgent {
      * 将执行计划的结果转换为用户可读的响应
      *
      * @param intent - 用户意图
-     * @param plan - 已执行的任务计划
      * @returns Agent 响应
      */
-    async handleIntentResult(intent, plan) {
+    async handleIntentResult(intent) {
         switch (intent.type) {
             case 'create':
-                return await this.handleCreateIntent(intent, plan);
+                return await this.handleCreateIntent(intent);
             case 'edit':
-                return await this.handleEditIntent(intent, plan);
+                return await this.handleEditIntent(intent);
             case 'add_effect':
-                return await this.handleAddEffectIntent(intent, plan);
+                return await this.handleAddEffectIntent(intent);
             case 'preview':
-                return await this.handlePreviewIntent(intent, plan);
+                return await this.handlePreviewIntent(intent);
             case 'query':
                 return await this.handleQueryIntent(intent);
             case 'unknown':
@@ -180,10 +169,9 @@ export class RemotionAgent {
      * 处理创建视频的意图（使用 Harness 2.0）
      *
      * @param intent - 用户意图
-     * @param plan - 任务计划
      * @returns Agent 响应
      */
-    async handleCreateIntent(intent, plan) {
+    async handleCreateIntent(intent) {
         tracer.log('info', '🚀 使用 Harness 处理创建意图');
         try {
             // 提取素材路径
@@ -231,7 +219,7 @@ export class RemotionAgent {
     /**
      * 处理编辑视频的意图
      */
-    async handleEditIntent(intent, plan) {
+    async handleEditIntent(intent) {
         tracer.log('info', '处理编辑意图');
         // 检查是否有当前组合
         if (!this.context.currentComposition) {
@@ -250,7 +238,7 @@ export class RemotionAgent {
     /**
      * 处理添加特效的意图
      */
-    async handleAddEffectIntent(intent, plan) {
+    async handleAddEffectIntent(intent) {
         tracer.log('info', '处理添加特效意图');
         // 检查是否有当前组合
         if (!this.context.currentComposition) {
@@ -269,6 +257,22 @@ export class RemotionAgent {
     /**
      * 处理预览的意图
      */
+    async handlePreviewIntent(intent) {
+        tracer.log('info', '处理预览意图');
+        // 检查是否有当前组合
+        if (!this.context.currentComposition) {
+            return {
+                message: '❌ 没有找到当前组合。请先创建一个视频。',
+                needsConfirmation: false,
+                clarifications: [],
+            };
+        }
+        return {
+            message: '✅ 预览功能正在开发中。当前您可以直接渲染视频。',
+            needsConfirmation: false,
+            clarifications: [],
+        };
+    }
     /**
      * 处理查询意图（例如：视频在哪？状态如何？）
      *
@@ -324,13 +328,6 @@ export class RemotionAgent {
                 clarifications: [],
             };
         }
-    }
-    async handlePreviewIntent(intent, plan) {
-        return {
-            message: '要预览您的组合，请运行：npm run dev',
-            needsConfirmation: false,
-            clarifications: [],
-        };
     }
     /**
      * 获取性能指标

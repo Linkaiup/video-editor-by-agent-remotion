@@ -11,6 +11,7 @@
 import OpenAI from 'openai';
 import { AGENT_CONFIG, SYSTEM_PROMPTS } from './config.js';
 import { createTracer } from './tracing.js';
+import { withRetry } from './llm-retry.js';
 // 初始化 OpenAI API 客户端
 const openai = new OpenAI({
     apiKey: AGENT_CONFIG.apiKey,
@@ -18,7 +19,7 @@ const openai = new OpenAI({
     defaultHeaders: {
         'User-Agent': 'Remotion-Video-Agent/0.1.0',
     },
-    timeout: 30000, // 30秒超时
+    timeout: 60000, // 60秒超时
 });
 // 创建追踪器用于记录操作
 const tracer = createTracer('IntentRecognition');
@@ -37,13 +38,13 @@ const tracer = createTracer('IntentRecognition');
 export async function recognizeIntent(userMessage) {
     const trace = tracer.startTrace('recognize_intent', { message: userMessage });
     try {
-        // 调用 OpenAI API 进行意图识别
+        // 使用重试包装器调用 OpenAI API 进行意图识别
         tracer.log('info', 'OpenAI API 请求开始', {
             model: AGENT_CONFIG.model,
             baseURL: AGENT_CONFIG.apiBase,
             messageLength: userMessage.length,
         });
-        const response = await openai.chat.completions.create({
+        const response = await withRetry(() => openai.chat.completions.create({
             model: AGENT_CONFIG.model,
             max_tokens: 1024,
             temperature: AGENT_CONFIG.temperature,
@@ -57,6 +58,10 @@ export async function recognizeIntent(userMessage) {
                     content: `分析这个视频编辑请求并提取结构化意图：\n\n"${userMessage}"\n\n返回 JSON 格式，包含: type, description, confidence (0-1), entities {assets, effects, transitions, duration, position, text}`,
                 },
             ],
+        }), 'intent_recognition', {
+            maxRetries: 3,
+            retryDelay: 2000,
+            exponentialBackoff: true,
         });
         tracer.log('info', 'OpenAI API 响应成功', {
             usage: response.usage,
